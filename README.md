@@ -1,11 +1,16 @@
+# StudyHub Prototype
 
-  # Premium SaaS Landing Page
+A unified dashboard for university students to access multiple platforms in one place.
 
-  This is a code bundle for Premium SaaS Landing Page. The original project is available at https://www.figma.com/design/X2H9ndPzb2cHcpcxjPG7WO/Premium-SaaS-Landing-Page.
+## Features
+- Single login system
+- Dashboard view of all university apps
+- Clean UI/UX
 
-  ## Running the code
+## Tech Stack
+- React
+- Node.js
+- Figma (Design)
 
-  Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
-  
+## Author
+Prashant S Bisht
