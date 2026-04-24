@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
   Bell,
@@ -13,12 +13,21 @@ import {
   Lock,
   Palette,
   Globe,
-  HelpCircle
+  HelpCircle,
+  GraduationCap
 } from 'lucide-react';
 
 export default function Settings() {
   const [phoneNumber, setPhoneNumber] = useState('+91 98765 43210');
   const [isVerified, setIsVerified] = useState(true);
+  
+  const [universityDetails, setUniversityDetails] = useState({
+    rollNumber: '',
+    branch: '',
+    batch: ''
+  });
+  const [isSavingUni, setIsSavingUni] = useState(false);
+
   const [notifications, setNotifications] = useState({
     deadlines: true,
     classCancellations: true,
@@ -26,6 +35,34 @@ export default function Settings() {
     grades: false,
     announcements: true
   });
+
+  useEffect(() => {
+    // Fetch university settings on mount
+    fetch('/api/settings/university')
+      .then(res => res.json())
+      .then(data => {
+        if (data.details) {
+          setUniversityDetails(prev => ({ ...prev, ...data.details }));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleSaveUniversity = async () => {
+    setIsSavingUni(true);
+    try {
+      await fetch('/api/settings/university', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ details: universityDetails })
+      });
+      // show success feedback if needed
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingUni(false);
+    }
+  };
 
   const toggleNotification = (key: string) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
@@ -77,10 +114,68 @@ export default function Settings() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Settings</h1>
+        <p className="text-neutral-500 dark:text-neutral-400">
           Manage your notifications, preferences, and account settings
         </p>
+      </motion.div>
+
+      {/* University Details */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center">
+            <GraduationCap className="w-5 h-5 text-neutral-900 dark:text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white">University Details</h2>
+            <p className="text-sm text-neutral-500">Provide your college info for personalized insights</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Roll Number</label>
+            <input
+              type="text"
+              value={universityDetails.rollNumber}
+              onChange={e => setUniversityDetails({ ...universityDetails, rollNumber: e.target.value })}
+              className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+              placeholder="e.g. 2024CS01"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Branch / Course</label>
+            <input
+              type="text"
+              value={universityDetails.branch}
+              onChange={e => setUniversityDetails({ ...universityDetails, branch: e.target.value })}
+              className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+              placeholder="e.g. Computer Science"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Graduation Year</label>
+            <input
+              type="text"
+              value={universityDetails.batch}
+              onChange={e => setUniversityDetails({ ...universityDetails, batch: e.target.value })}
+              className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+              placeholder="e.g. 2028"
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleSaveUniversity}
+          disabled={isSavingUni}
+          className="px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
+        >
+          {isSavingUni ? 'Saving...' : 'Save Details'}
+        </button>
       </motion.div>
 
       {/* WhatsApp Notifications */}
@@ -88,95 +183,74 @@ export default function Settings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800"
+        className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-            <MessageCircle className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+            <MessageCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">WhatsApp Notifications</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Get important updates delivered to your WhatsApp
-            </p>
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white">WhatsApp Alerts</h2>
+            <p className="text-sm text-neutral-500">Get important updates delivered to your phone</p>
           </div>
         </div>
 
         {/* Phone Number Verification */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">Phone Number</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{phoneNumber}</p>
-              </div>
+        <div className="bg-neutral-50 dark:bg-neutral-950 rounded-xl p-5 border border-neutral-200 dark:border-neutral-800 mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Phone className="w-5 h-5 text-neutral-500" />
+            <div>
+              <p className="font-semibold text-neutral-900 dark:text-white text-sm">Phone Number</p>
+              <p className="text-sm text-neutral-500">{phoneNumber}</p>
             </div>
-            {isVerified && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-200 dark:bg-green-900/50 rounded-full">
-                <CheckCircle2 className="w-4 h-4 text-green-700 dark:text-green-300" />
-                <span className="text-xs font-semibold text-green-700 dark:text-green-300">Verified</span>
-              </div>
-            )}
           </div>
-          {!isVerified && (
-            <button className="w-full py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
-              Verify Phone Number
+          {isVerified ? (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+              <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className="text-xs font-semibold text-green-600 dark:text-green-400">Verified</span>
+            </div>
+          ) : (
+            <button className="px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg text-sm font-medium">
+              Verify
             </button>
           )}
         </div>
 
         {/* Notification Preferences */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Notification Preferences</h3>
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-3">Preferences</h3>
           {notificationOptions.map((option, index) => (
-            <motion.div
+            <div
               key={option.key}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:shadow-md transition-all"
+              className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-xl"
             >
-              <div className="flex items-center gap-4 flex-1">
-                <div className={`w-12 h-12 bg-gradient-to-br ${option.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                  <option.icon className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <option.icon className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{option.title}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{option.description}</p>
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">{option.title}</h4>
+                  <p className="text-xs text-neutral-500">{option.description}</p>
                 </div>
               </div>
               <button
                 onClick={() => toggleNotification(option.key)}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
+                className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
                   notifications[option.key as keyof typeof notifications]
-                    ? 'bg-green-500'
-                    : 'bg-gray-300 dark:bg-gray-600'
+                    ? 'bg-neutral-900 dark:bg-white'
+                    : 'bg-neutral-300 dark:bg-neutral-700'
                 }`}
               >
                 <div
-                  className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white dark:bg-neutral-900 rounded-full transition-transform ${
                     notifications[option.key as keyof typeof notifications]
-                      ? 'translate-x-7'
+                      ? 'translate-x-5'
                       : 'translate-x-0'
                   }`}
                 />
               </button>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* WhatsApp Info */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-          <div className="flex gap-3">
-            <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
-              <p className="font-semibold mb-1">How WhatsApp notifications work</p>
-              <p className="text-blue-700 dark:text-blue-300">
-                We'll send you a WhatsApp message when important events occur. You can control which notifications you receive above. Your phone number is kept secure and never shared.
-              </p>
             </div>
-          </div>
+          ))}
         </div>
       </motion.div>
 
@@ -185,10 +259,10 @@ export default function Settings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800"
+        className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
       >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Account Settings</h2>
-        <div className="space-y-3">
+        <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">Account Settings</h2>
+        <div className="space-y-2">
           {[
             { icon: User, title: 'Profile Information', description: 'Update your name, email, and bio' },
             { icon: Lock, title: 'Privacy & Security', description: 'Manage your password and security settings' },
@@ -197,54 +271,18 @@ export default function Settings() {
           ].map((setting, index) => (
             <button
               key={index}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:shadow-md transition-all text-left"
+              className="w-full flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-left"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                  <setting.icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-lg flex items-center justify-center">
+                  <setting.icon className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">{setting.title}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{setting.description}</p>
+                  <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">{setting.title}</h4>
+                  <p className="text-xs text-neutral-500">{setting.description}</p>
                 </div>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
             </button>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Connected Apps */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800"
-      >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Connected Applications</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {[
-            { name: 'Gmail', status: 'Connected', color: 'green' },
-            { name: 'Slack', status: 'Connected', color: 'green' },
-            { name: 'Canvas', status: 'Connected', color: 'green' },
-            { name: 'Discord', status: 'Connected', color: 'green' },
-            { name: 'Google Calendar', status: 'Connected', color: 'green' },
-            { name: 'Google Spaces', status: 'Connected', color: 'green' }
-          ].map((app, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl"
-            >
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{app.name}</p>
-                <p className="text-sm text-green-600 dark:text-green-400">{app.status}</p>
-              </div>
-              <button className="px-4 py-2 text-sm text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                Disconnect
-              </button>
-            </div>
           ))}
         </div>
       </motion.div>

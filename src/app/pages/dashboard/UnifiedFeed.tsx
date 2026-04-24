@@ -1,101 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Mail, MessageSquare, BookOpen, MessageCircle, Users, Filter, Clock, Star } from 'lucide-react';
 
 const filters = ['All', 'Urgent', 'Academic', 'Events', 'Personal'];
 
-const feedItems = [
-  {
-    id: 1,
-    source: 'Gmail',
-    icon: Mail,
-    color: 'from-red-500 to-red-600',
-    sender: 'Prof. Sharma',
-    subject: 'Assignment 3 - Graph Algorithms Due Tomorrow',
-    preview: 'Please submit your solutions for the graph algorithms assignment by 11:59 PM tomorrow...',
-    time: '10 min ago',
-    category: 'Urgent',
-    isStarred: true
-  },
-  {
-    id: 2,
-    source: 'Slack',
-    icon: MessageSquare,
-    color: 'from-purple-500 to-purple-600',
-    sender: '#project-discussions',
-    subject: 'New message from Rahul',
-    preview: '@everyone The project deadline has been extended by 2 days. Let\'s schedule a sync meeting...',
-    time: '25 min ago',
-    category: 'Academic',
-    isStarred: false
-  },
-  {
-    id: 3,
-    source: 'Canvas',
-    icon: BookOpen,
-    color: 'from-orange-500 to-orange-600',
-    sender: 'Database Systems',
-    subject: 'Grades Posted - Quiz 2',
-    preview: 'Your grade for Quiz 2 has been posted. View your detailed feedback in the gradebook...',
-    time: '1 hour ago',
-    category: 'Academic',
-    isStarred: true
-  },
-  {
-    id: 4,
-    source: 'Discord',
-    icon: MessageCircle,
-    color: 'from-indigo-500 to-indigo-600',
-    sender: 'Study Group - DSA',
-    subject: 'Meeting scheduled for 6 PM',
-    preview: 'Hey everyone! We\'re meeting at 6 PM today to discuss dynamic programming problems...',
-    time: '2 hours ago',
-    category: 'Events',
-    isStarred: false
-  },
-  {
-    id: 5,
-    source: 'Spaces',
-    icon: Users,
-    color: 'from-green-500 to-green-600',
-    sender: 'ML Project Team',
-    subject: 'Dataset uploaded to shared drive',
-    preview: 'I\'ve uploaded the cleaned dataset to our Google Drive. Please review before tomorrow\'s meeting...',
-    time: '3 hours ago',
-    category: 'Academic',
-    isStarred: false
-  },
-  {
-    id: 6,
-    source: 'Gmail',
-    icon: Mail,
-    color: 'from-red-500 to-red-600',
-    sender: 'Career Services',
-    subject: 'Tech Talk: Google Engineers - Tomorrow 4 PM',
-    preview: 'Join us for an exciting tech talk with Google engineers discussing career paths in tech...',
-    time: '5 hours ago',
-    category: 'Events',
-    isStarred: false
-  },
-  {
-    id: 7,
-    source: 'Slack',
-    icon: MessageSquare,
-    color: 'from-purple-500 to-purple-600',
-    sender: '#general',
-    subject: 'Campus fest registrations open',
-    preview: 'TechFest 2026 registrations are now open! Register your team for hackathon and coding competitions...',
-    time: '6 hours ago',
-    category: 'Events',
-    isStarred: false
-  }
-];
+interface FeedItem {
+  id: number;
+  source: string;
+  icon?: any;
+  color?: string;
+  sender?: string;
+  subject?: string;
+  title?: string;
+  preview?: string;
+  time: string;
+  category?: string;
+  type?: string;
+  isStarred?: boolean;
+}
 
 export default function UnifiedFeed() {
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [starredItems, setStarredItems] = useState<number[]>(
-    feedItems.filter(item => item.isStarred).map(item => item.id)
-  );
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [starredItems, setStarredItems] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/notifications');
+        const data = await res.json();
+        // Map backend data to UI format
+        const mappedData = data.map((item: any) => ({
+          ...item,
+          subject: item.title,
+          preview: item.preview || 'Check platform for details...',
+          category: item.type === 'alert' ? 'Urgent' : 'Academic',
+          isStarred: false,
+          sender: item.source === 'Slack' ? '#general' : 'System',
+          color: 'from-neutral-800 to-neutral-900', // Minimalist neutral gradient
+          icon: item.source === 'Slack' ? MessageSquare : item.source === 'Gmail' ? Mail : BookOpen
+        }));
+        setFeedItems(mappedData);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   const filteredItems = feedItems.filter(item =>
     selectedFilter === 'All' || item.category === selectedFilter
@@ -115,9 +69,9 @@ export default function UnifiedFeed() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Unified Feed</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          All your messages from Gmail, Slack, Spaces, Discord, and Canvas in one place
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-2">Unified Feed</h1>
+        <p className="text-neutral-500 dark:text-neutral-400">
+          All your messages from Gmail, Slack, Spaces, Discord, and Canvas in one place.
         </p>
       </motion.div>
 
@@ -126,22 +80,20 @@ export default function UnifiedFeed() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800"
       >
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-            <Filter className="w-5 h-5" />
-            <span className="font-semibold">Filter:</span>
+        <div className="flex items-center gap-4 flex-wrap pb-2">
+          <div className="flex items-center gap-2 text-neutral-500">
+            <Filter className="w-4 h-4" />
           </div>
           <div className="flex gap-2 flex-wrap">
             {filters.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   selectedFilter === filter
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
+                    : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800'
                 }`}
               >
                 {filter}
@@ -152,76 +104,83 @@ export default function UnifiedFeed() {
       </motion.div>
 
       {/* Feed Items */}
-      <div className="space-y-4">
-        {filteredItems.map((item, index) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 hover:shadow-lg transition-all"
-          >
-            <div className="flex gap-4">
-              {/* Icon */}
-              <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                <item.icon className="w-6 h-6 text-white" />
-              </div>
+      <div className="space-y-3">
+        {loading ? (
+          <div className="text-neutral-500 text-sm">Fetching notifications...</div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-neutral-500 text-sm">No notifications found.</div>
+        ) : (
+          filteredItems.map((item, index) => {
+            const Icon = item.icon || MessageSquare;
+            return (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all group"
+              >
+                <div className="flex gap-4">
+                  {/* Minimalist Icon */}
+                  <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700 transition-colors">
+                    <Icon className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
+                  </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                        {item.source}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-500">•</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-500">{item.sender}</span>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-1.5">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold tracking-wide uppercase text-neutral-900 dark:text-white">
+                            {item.source}
+                          </span>
+                          <span className="text-xs text-neutral-300 dark:text-neutral-700">•</span>
+                          <span className="text-xs text-neutral-500">{item.sender}</span>
+                        </div>
+                        <h3 className="font-semibold text-neutral-900 dark:text-white mb-1">
+                          {item.subject}
+                        </h3>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2 pr-4">
+                          {item.preview}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => toggleStar(item.id)}
+                          className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors text-neutral-400"
+                        >
+                          <Star
+                            className={`w-4 h-4 ${
+                              starredItems.includes(item.id)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'hover:text-neutral-600 dark:hover:text-neutral-300'
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                      {item.subject}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {item.preview}
-                    </p>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                    <button
-                      onClick={() => toggleStar(item.id)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                    >
-                      <Star
-                        className={`w-5 h-5 ${
-                          starredItems.includes(item.id)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-400'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-3 mt-3">
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{item.time}</span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                        item.category === 'Urgent'
+                          ? 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/10 dark:border-red-900/30'
+                          : 'bg-neutral-100 text-neutral-600 border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300'
+                      }`}>
+                        {item.category}
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
-                    <Clock className="w-4 h-4" />
-                    <span>{item.time}</span>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    item.category === 'Urgent'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                      : item.category === 'Academic'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                      : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                  }`}>
-                    {item.category}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+              </motion.div>
+            );
+          })
+        )}
       </div>
     </div>
   );

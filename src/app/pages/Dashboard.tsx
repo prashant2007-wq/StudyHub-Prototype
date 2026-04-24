@@ -51,15 +51,15 @@ export default function Dashboard() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-950 ${isDark ? 'dark' : ''}`}>
+    <div className={`min-h-screen font-sans selection:bg-neutral-200 dark:selection:bg-neutral-800 bg-neutral-50 dark:bg-neutral-950 ${isDark ? 'dark' : ''}`}>
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 z-40">
         {/* Logo */}
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <GraduationCap className="w-6 h-6 text-white" />
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="w-8 h-8 bg-neutral-900 dark:bg-white rounded-lg flex items-center justify-center">
+            <GraduationCap className="w-5 h-5 text-white dark:text-neutral-900" />
           </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">StudyHub</span>
+          <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">StudyHub</span>
         </div>
 
         {/* Navigation */}
@@ -68,13 +68,13 @@ export default function Dashboard() {
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
                 isActive(item.path)
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-200'
               }`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-4 h-4" />
               <span>{item.name}</span>
             </button>
           ))}
@@ -84,16 +84,16 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="ml-64">
         {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
           <div className="h-full px-6 flex items-center justify-between">
             {/* Search */}
             <div className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                 <input
                   type="text"
                   placeholder="Search assignments, courses, messages..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full pl-9 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800/50 border border-transparent focus:border-neutral-300 dark:focus:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -103,42 +103,42 @@ export default function Dashboard() {
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDark(!isDark)}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 transition-colors"
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
 
               {/* Notifications */}
-              <button className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              <button className="relative p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 transition-colors">
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-neutral-900 dark:bg-white rounded-full"></span>
               </button>
 
               {/* User Menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-none"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-md flex items-center justify-center text-neutral-700 dark:text-neutral-300 font-semibold text-xs border border-neutral-300 dark:border-neutral-700">
                     PS
                   </div>
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                      <p className="font-semibold text-gray-900 dark:text-white">Priya Sharma</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">student@rishihood.edu.in</p>
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+                    <div className="p-4 border-b border-neutral-100 dark:border-neutral-800">
+                      <p className="font-semibold text-neutral-900 dark:text-white text-sm">Priya Sharma</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">student@rishihood.edu.in</p>
                     </div>
-                    <div className="p-2">
-                      <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    <div className="p-1.5">
+                      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-sm transition-colors">
                         <User className="w-4 h-4" />
                         <span>Profile</span>
                       </button>
                       <button
                         onClick={() => navigate('/')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600 dark:text-red-400 text-sm transition-colors mt-1"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
@@ -152,7 +152,7 @@ export default function Dashboard() {
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
+        <main className="p-6 max-w-7xl mx-auto">
           <Outlet />
         </main>
       </div>

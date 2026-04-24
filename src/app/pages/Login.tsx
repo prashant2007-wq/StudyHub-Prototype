@@ -58,6 +58,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,244 +73,230 @@ export default function Login() {
     uni.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, university: selectedUniversity })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('studyhub_token', data.token);
+        localStorage.setItem('studyhub_user', JSON.stringify(data.user));
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleSSO = () => {
-    navigate('/dashboard');
+  const handleGoogleSSO = async () => {
+    setLoading(true);
+    try {
+      // Mock Google SSO flow
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('studyhub_token', data.token);
+        localStorage.setItem('studyhub_user', JSON.stringify(data.user));
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'dark' : ''}`}>
-      {/* Background */}
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900">
-        {/* Floating Gradient Orbs */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            animate={{
-              x: [0, 100, 0],
-              y: [0, -100, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/30 rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{
-              x: [0, -100, 0],
-              y: [0, 100, 0],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl"
-          />
-        </div>
+    <div className={`min-h-screen font-sans selection:bg-neutral-200 dark:selection:bg-neutral-800 ${isDark ? 'dark bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'}`}>
+      {/* Background Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setIsDark(!isDark)}
-          className="fixed top-6 right-6 z-50 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all"
+      {/* Theme Toggle */}
+      <button
+        onClick={() => setIsDark(!isDark)}
+        className="fixed top-6 right-6 z-50 p-3 rounded-full bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-900 transition-all shadow-sm"
+      >
+        {isDark ? '☀️' : '🌙'}
+      </button>
+
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="fixed top-6 left-6 z-50 px-4 py-2 rounded-full bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-900 transition-all shadow-sm flex items-center gap-2 text-sm font-medium"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
+
+      {/* Login Card */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-md"
         >
-          {isDark ? '☀️' : '🌙'}
-        </button>
-
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="fixed top-6 left-6 z-50 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-
-        {/* Login Card */}
-        <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 shadow-2xl">
-              {/* Logo & Title */}
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl mb-4 shadow-lg">
-                  <GraduationCap className="w-8 h-8 text-blue-600" />
-                </div>
-                <h1 className="text-3xl font-bold text-white mb-2">Welcome to StudyHub</h1>
-                <p className="text-white/70">Sign in to access your unified dashboard</p>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 shadow-xl">
+            {/* Logo & Title */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-neutral-900 dark:bg-white rounded-2xl mb-6 shadow-sm">
+                <GraduationCap className="w-7 h-7 text-white dark:text-neutral-900" />
               </div>
-
-              <form onSubmit={handleLogin} className="space-y-6">
-                {/* University Dropdown */}
-                <div className="relative">
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Select Your University
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white text-left focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                    >
-                      {selectedUniversity || 'Choose your university...'}
-                    </button>
-
-                    {isDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute z-20 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-80 overflow-hidden"
-                      >
-                        {/* Search */}
-                        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                              type="text"
-                              placeholder="Search universities..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Universities List */}
-                        <div className="overflow-y-auto max-h-64">
-                          {filteredUniversities.map((university, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => {
-                                setSelectedUniversity(university);
-                                setIsDropdownOpen(false);
-                                setSearchQuery('');
-                              }}
-                              className={`w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                index === 0
-                                  ? 'bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-500'
-                                  : ''
-                              } ${
-                                selectedUniversity === university
-                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold'
-                                  : 'text-gray-900 dark:text-white'
-                              }`}
-                            >
-                              {university}
-                              {index === 0 && (
-                                <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
-                                  Featured
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email Input */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    College Email ID
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="student@rishihood.edu.in"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                  />
-                </div>
-
-                {/* Password Input */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Login Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  className="w-full py-3 bg-white text-blue-600 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  Login
-                </motion.button>
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/30"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-transparent text-white/70">Or continue with</span>
-                  </div>
-                </div>
-
-                {/* Google SSO */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  onClick={handleGoogleSSO}
-                  className="w-full py-3 bg-white/10 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white/20 transition-all flex items-center justify-center gap-3"
-                >
-                  <Mail className="w-5 h-5" />
-                  Sign in with Google
-                </motion.button>
-              </form>
-
-              {/* Footer */}
-              <p className="text-center text-white/60 text-sm mt-6">
-                Don't have an account?{' '}
-                <button className="text-white font-semibold hover:underline">
-                  Sign up
-                </button>
-              </p>
+              <h1 className="text-2xl font-bold tracking-tight mb-2">Welcome Back</h1>
+              <p className="text-neutral-500 dark:text-neutral-400 text-sm">Sign in to access your dashboard</p>
             </div>
 
-            {/* Additional Info */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-center mt-6 text-white/70 text-sm"
-            >
-              <p>Secure login • End-to-end encrypted</p>
-            </motion.div>
-          </motion.div>
-        </div>
+            <form onSubmit={handleLogin} className="space-y-5">
+              {/* University Dropdown */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  University
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all text-sm"
+                  >
+                    {selectedUniversity || 'Select your university...'}
+                  </button>
+
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-20 w-full mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-800 max-h-64 overflow-hidden flex flex-col"
+                    >
+                      <div className="p-2 border-b border-neutral-100 dark:border-neutral-800">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-md text-sm focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="overflow-y-auto flex-1 p-1">
+                        {filteredUniversities.map((university, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUniversity(university);
+                              setIsDropdownOpen(false);
+                              setSearchQuery('');
+                            }}
+                            className={`w-full px-3 py-2 text-left text-sm rounded-md transition-colors ${
+                              selectedUniversity === university
+                                ? 'bg-neutral-100 dark:bg-neutral-800 font-medium'
+                                : 'hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                            }`}
+                          >
+                            {university}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  placeholder="student@rishihood.edu.in"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+                />
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Login Button */}
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium text-sm shadow-sm hover:shadow-md transition-all flex justify-center"
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </motion.button>
+
+              {/* Divider */}
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-3 bg-white dark:bg-neutral-900 text-neutral-500">Or continue with</span>
+                </div>
+              </div>
+
+              {/* Google SSO */}
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="button"
+                onClick={handleGoogleSSO}
+                disabled={loading}
+                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-lg font-medium text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Mail className="w-4 h-4" />
+                Google
+              </motion.button>
+            </form>
+          </div>
+
+          <div className="text-center mt-6 text-neutral-500 text-xs">
+            <p>Secure login • End-to-end encrypted</p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
